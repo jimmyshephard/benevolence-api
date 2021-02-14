@@ -1,0 +1,39 @@
+{
+  "name": "bene-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/index.js",
+    "debug": "node --inspect src/index.js"
+  },
+  "keywords": [],
+  "author": "james.mwirigi@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "authorizenet": "^1.0.7",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-jwt": "^6.0.0",
+    "express-session": "^1.17.1",
+    "express-validator": "^6.9.2",
+    "gaxios": "^4.1.0",
+    "jwks-rsa": "^1.12.2",
+    "jwt-decode": "^3.1.2",
+    "mysql2": "^2.2.5",
+    "nodemon": "^2.0.7",
+    "passport": "^0.4.1",
+    "passport-auth0": "^1.4.0"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "test/*",
+      "docs/*"
+    ],
+    "delay": "2500"
+  },
+  "devDependencies": {}
+}

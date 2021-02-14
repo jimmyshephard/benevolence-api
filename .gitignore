@@ -1,0 +1,5 @@
+/src/.env
+/environments/
+/node_modules/
+/package-lock.json
+/.idea
