@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon src/index.js",
-    "debug": "node --inspect src/index.js"
+    "debug": "nodemon --inspect src/index.js"
   },
   "keywords": [],
   "author": "james.mwirigi@gmail.com",

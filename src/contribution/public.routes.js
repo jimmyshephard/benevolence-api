@@ -6,19 +6,20 @@ const {body} = require('express-validator');
 const router = new Router();
 
 router.post(
-    '/chargeCreditCard',
-    body('cardnumber').isLength({min: 13}).trim(),
-    body('firstname').not().isEmpty().trim(),
-    body('lastname').not().isEmpty().trim(),
-    body('description').isLength({min: 5}),
-    body('zip').isNumeric().isLength({min: 5}),
-    body('email').isEmail().normalizeEmail(),
-    body('cardcode').isNumeric().isLength({min: 3}),
-    body('expirationdate').not().isEmpty().trim(),
-    body('amount').isNumeric(),
-    body('createprofile').isBoolean(),
-    validateRequest,
-    contributionController.chargeCreditCard,
+  '/charge-credit-card',
+  body('cardnumber').isLength({min: 13}).trim(),
+  body('firstname').not().isEmpty().trim(),
+  body('lastname').not().isEmpty().trim(),
+  body('description').isLength({min: 5}),
+  body('zip').isNumeric().isLength({min: 5}),
+  body('email').isEmail(),
+  body('cardcode').isNumeric().isLength({min: 3}),
+  body('expirationdate').not().isEmpty().trim(),
+  body('amount').not().isEmpty().isNumeric(),
+  validateRequest,
+  contributionController.chargeCreditCard,
 );
+
+router.get('/year-options', contributionController.getYearOptions);
 
 module.exports = router;

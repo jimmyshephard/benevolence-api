@@ -1,20 +1,33 @@
 const {API_LOGIN, TRANSACTION_KEY} = process.env;
 const ApiContracts = require('authorizenet').APIContracts;
 const ApiControllers = require('authorizenet').APIControllers;
+const DatabaseService = require('../db/database.service');
+const {CustomerProfileService} = require('../customer-profile');
+const {getCustomerProfileQuery,} = require('../customer-profile');
+const saveCustomerProfileQuery = require('./saveCustomerProfileQuery');
+const getContributionsQuery = require('./getContributionsQuery');
+
 
 class ContributionService {
 
+  constructor(db, customerProfileService) {
+    this.db = db || new DatabaseService();
+    this.customerProfileService = customerProfileService || new CustomerProfileService()
+  }
+
   /**
    * Charge a credit card
-   * @param params
-   * @returns {Promise<unknown>}
+   * @param req
+   * @returns {Promise<{}>}
    */
-  chargeCreditCard = async (params) => {
+  chargeCreditCard = async (req) => {
     try {
       const {
         cardnumber, firstname, lastname, description, zip, cardcode,
-        email, expirationdate, amount, createprofile
-      } = params;
+        expirationdate, amount, createprofile
+      } = req.body;
+
+      const email = req.body.email || req.user_email;
 
       const merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
       merchantAuthenticationType.setName(API_LOGIN);
@@ -29,7 +42,7 @@ class ContributionService {
       paymentType.setCreditCard(creditCard);
 
       const orderDetails = new ApiContracts.OrderType();
-      orderDetails.setInvoiceNumber(`INV-`);
+      orderDetails.setInvoiceNumber(`INV-${Math.floor(Math.random() * 100000)}`);
       orderDetails.setDescription(description);
 
       const billTo = new ApiContracts.CustomerAddressType();
@@ -45,10 +58,6 @@ class ContributionService {
       transactionRequestType.setOrder(orderDetails);
       transactionRequestType.setBillTo(billTo);
 
-      if (createprofile) {
-        // transactionRequestType.setProfile(new ApiContracts.CustomerPaymentProfileType());
-      }
-
       const customerData = new ApiContracts.CustomerDataType();
       customerData.setEmail(email);
 
@@ -56,12 +65,9 @@ class ContributionService {
       createRequest.setMerchantAuthentication(merchantAuthenticationType);
       createRequest.setTransactionRequest(transactionRequestType);
 
-      //pretty print request
-      console.log(JSON.stringify(createRequest.getJSON(), null, 2));
-
       const ctrl = new ApiControllers.CreateTransactionController(createRequest.getJSON());
 
-      return new Promise((resolve, reject) => {
+      const chargeCreditCardResponse = await new Promise((resolve, reject) => {
 
         ctrl.execute(function () {
 
@@ -76,6 +82,7 @@ class ContributionService {
                 console.log('Response Code: ' + response.getTransactionResponse().getResponseCode());
                 console.log('Message Code: ' + response.getTransactionResponse().getMessages().getMessage()[0].getCode());
                 console.log('Description: ' + response.getTransactionResponse().getMessages().getMessage()[0].getDescription());
+
                 resolve(response.getTransactionResponse());
               } else {
                 console.log('Failed Transaction.');
@@ -110,6 +117,124 @@ class ContributionService {
         });
       });
 
+      if (chargeCreditCardResponse && createprofile && !await this.userHasProfile(email)) {
+        const createProfileFromTxResponse = await this.createProfileFromTransaction(chargeCreditCardResponse.transId, email);
+        return {...createProfileFromTxResponse, message: 'The transaction was successful'};
+      }
+
+      // Save to db
+      await this.customerProfileService.saveTransaction({
+        AMNT: amount,
+        TRNSCTN_ID: chargeCreditCardResponse.transId,
+        email
+      });
+
+      return chargeCreditCardResponse;
+
+    } catch (e) {
+      throw e;
+    }
+  }
+
+
+  /**
+   *
+   * @param email
+   * @returns {Promise<boolean>}
+   */
+  async userHasProfile(email) {
+    try {
+      const dbResultSet = await this.db.query(getCustomerProfileQuery, [email]) || [];
+      return dbResultSet.length > 0;
+    } catch (e) {
+      throw  e;
+    }
+  }
+
+  /**
+   *
+   * @param transactionId,
+   * @param email
+   * @returns {Promise<unknown>}
+   */
+  async createProfileFromTransaction(transactionId, email) {
+    try {
+      console.log(`Creating profile from transaction ${transactionId}`);
+      const merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
+
+      merchantAuthenticationType.setName(API_LOGIN);
+      merchantAuthenticationType.setTransactionKey(TRANSACTION_KEY);
+
+      const createRequest = new ApiContracts.CreateCustomerProfileFromTransactionRequest();
+
+      createRequest.setTransId(transactionId);
+      createRequest.setMerchantAuthentication(merchantAuthenticationType);
+
+      const ctrl = new ApiControllers.CreateCustomerProfileFromTransactionController(createRequest.getJSON());
+
+      const response = await new Promise((resolve, reject) => {
+        ctrl.execute(async function () {
+
+          const apiResponse = ctrl.getResponse();
+          const response = new ApiContracts.CreateCustomerProfileResponse(apiResponse);
+
+          if (response != null) {
+            if (response.getMessages().getResultCode() == ApiContracts.MessageTypeEnum.OK) {
+              console.log('Successfully created a customer payment profile with id: ' + response.getCustomerProfileId() +
+                ' from a transaction : ' + transactionId);
+              resolve(response);
+            } else {
+              console.log('Error Code: ' + response.getMessages().getMessage()[0].getCode());
+              console.log('Error message: ' + response.getMessages().getMessage()[0].getText());
+              reject(response.getMessages().getMessage()[0].getText());
+            }
+          } else {
+            console.log('Null Response.');
+            reject({
+              message: 'No response received',
+            });
+          }
+        });
+      });
+
+      if (response.customerProfileId) {
+        await this.db.query(saveCustomerProfileQuery, [email, response.customerProfileId]);
+      }
+
+      return response;
+
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  /**
+   *
+   * @returns {Promise<[]>}
+   */
+  getYearOptions = async () => {
+    try {
+      const yearOptions = [];
+      const thisYear = new Date().getFullYear();
+      yearOptions.push(thisYear);
+      for (let i = 1; i < 7; i++) {
+        yearOptions.push(yearOptions[i - 1] + 1);
+      }
+      return yearOptions;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  /**
+   *
+   * @param email
+   * @returns {Promise<void>}
+   */
+  getContributions = async (email) => {
+    try {
+      const resultSet = await this.db.query(getContributionsQuery, [email.toUpperCase()]);
+      return resultSet;
     } catch (e) {
       throw e;
     }

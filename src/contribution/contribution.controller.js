@@ -1,5 +1,4 @@
 const ContributionService = require('./contribution.service');
-const mockSuccessResult = require('./mock.success');
 
 class ContributionController {
 
@@ -7,18 +6,62 @@ class ContributionController {
     this.contributionService = contributionService || new ContributionService();
   }
 
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns {Promise<*>}
+   */
   chargeCreditCard = async (req, res) => {
     try {
-      console.log(`Processing contribution request for ${req.body.email}`);
-      // const result = await this.contributionService.chargeCreditCard(req.body);
-      return res.json(mockSuccessResult);
+      console.log(`Processing contribution request for ${req.body.user_email}`);
+      const result = await this.contributionService.chargeCreditCard(req);
+
+      return res.json(result);
     } catch (e) {
       console.error(e);
-      return res.status(500).
-          json({
-            status: 'Failed',
-            message: 'Error making credit card contribution',
-          });
+      return res.status(500).json({
+        message: typeof e === 'string' ? e : e.message || 'Error making credit card contribution',
+      });
+    }
+  };
+
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns {Promise<void>}
+   */
+  getYearOptions = async (req, res) => {
+    try {
+
+      const result = await this.contributionService.getYearOptions();
+
+      return res.json(result);
+
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({
+        message: 'Error getting year options',
+      });
+    }
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns {Promise<*>}
+   */
+  contributions = async (req, res) => {
+    try {
+      const contributions = await this.contributionService.getContributions(req.user_email);
+      return res.json(contributions);
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({
+        message: typeof e === 'string' ? e : e.message || 'Error making credit card contribution',
+      });
     }
   };
 }

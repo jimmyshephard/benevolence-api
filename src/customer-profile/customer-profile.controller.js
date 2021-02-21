@@ -19,10 +19,6 @@ class CustomerProfileController {
       const {user_email} = req;
       const result = await this.customerProfileService.getCustomerProfile(user_email);
 
-      if (JSON.stringify(result) === '{}') {
-        return res.status(404).json({message: 'No customer profiles found'})
-      }
-
       return res.json(result);
 
     } catch (e) {
@@ -35,24 +31,27 @@ class CustomerProfileController {
   };
 
   /**
-   * Return list of customer ids that belong to current user from db
+   *
    * @param req
    * @param res
-   * @returns {Promise<void>}
+   * @returns {Promise<*>}
    */
-  getUserCustomerProfiles = async (req, res) => {
+  chargeCustomerProfile = async (req, res) => {
+    try {
+      const result = await this
+        .customerProfileService
+        .chargeCustomerProfile({...req.body, email: req.user_email});
 
-  };
+      return res.json(result);
 
-  /**
-   * Update credit card attached to a customerPaymentProfile
-   * @param req
-   * @param res
-   * @returns {Promise<void>}
-   */
-  updateCustomerPaymentProfile = async (req, res) => {
+    } catch (e) {
+      console.error(e);
 
-  };
+      return res.status(500).json({
+        message: 'Error charging customer profile'
+      });
+    }
+  }
 }
 
 module.exports = CustomerProfileController;
