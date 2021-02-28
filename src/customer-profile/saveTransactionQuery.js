@@ -1,2 +1,2 @@
-module.exports = `INSERT INTO BENEVOLENCE.CUSTOMER_CONTRIBUTIONS
+module.exports = `INSERT INTO CUSTOMER_CONTRIBUTIONS
                   SET ?`;

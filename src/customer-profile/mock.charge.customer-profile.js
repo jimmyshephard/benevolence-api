@@ -1,6 +1,6 @@
 module.exports = {
   responseCode: '1',
-  authCode: '26EDT0',
+  authCode: 'MOCK',
   avsResultCode: 'Y',
   cvvResultCode: 'P',
   cavvResultCode: '2',

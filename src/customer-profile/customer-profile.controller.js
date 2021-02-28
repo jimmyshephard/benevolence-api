@@ -1,5 +1,6 @@
-const {validationResult} = require('express-validator');
 const CustomerProfileService = require('./customer-profile.service');
+const mock = require('./mock.charge.customer-profile');
+
 
 class CustomerProfileController {
 
@@ -25,7 +26,7 @@ class CustomerProfileController {
       console.error(e);
 
       return res.status(500).json({
-        message: 'Error fetching customer profile'
+        message: typeof e === 'string' ? e : 'Error fetching customer profile'
       });
     }
   };
@@ -48,7 +49,29 @@ class CustomerProfileController {
       console.error(e);
 
       return res.status(500).json({
-        message: 'Error charging customer profile'
+        message: typeof e === 'string' ? e : 'Error charging customer profile'
+      });
+    }
+  }
+
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns {Promise<*>}
+   */
+  updateCustomerPaymentProfile = async (req, res) => {
+    try {
+      const result = await this
+        .customerProfileService
+        .updateCustomerPaymentProfile({...req.body, email: req.user_email});
+
+      return res.json(result);
+
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({
+        message: typeof e === 'string' ? e : 'Error updating customer profile'
       });
     }
   }

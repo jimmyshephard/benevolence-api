@@ -208,6 +208,88 @@ class CustomerProfileService {
       throw e;
     }
   }
+
+  /**
+   *
+   * @param params
+   * @returns {Promise<unknown>}
+   */
+  async updateCustomerPaymentProfile(params) {
+    try {
+      const {
+        customerPaymentProfileId, user_email, customerProfileId, cardnumber, expirationdate,
+        firstname, lastname, address, state, zip, setDefault, city
+      } = params;
+
+      const merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
+      merchantAuthenticationType.setName(API_LOGIN);
+      merchantAuthenticationType.setTransactionKey(TRANSACTION_KEY);
+
+      const creditCardForUpdate = new ApiContracts.CreditCardType();
+
+      creditCardForUpdate.setCardNumber(cardnumber);
+      creditCardForUpdate.setExpirationDate(expirationdate);
+
+      const paymentType = new ApiContracts.PaymentType();
+      paymentType.setCreditCard(creditCardForUpdate);
+
+      const customerAddressType = new ApiContracts.CustomerAddressType();
+      customerAddressType.setFirstName(firstname);
+      customerAddressType.setLastName(lastname);
+      customerAddressType.setAddress(address);
+      customerAddressType.setCity(city);
+      customerAddressType.setState(state);
+      customerAddressType.setZip(zip);
+      customerAddressType.setCountry('USA');
+
+      const customerForUpdate = new ApiContracts.CustomerPaymentProfileExType();
+      customerForUpdate.setPayment(paymentType);
+      customerForUpdate.setDefaultPaymentProfile(setDefault);
+
+      customerForUpdate.setCustomerPaymentProfileId(customerPaymentProfileId);
+      customerForUpdate.setBillTo(customerAddressType);
+
+      const updateRequest = new ApiContracts.UpdateCustomerPaymentProfileRequest();
+      updateRequest.setMerchantAuthentication(merchantAuthenticationType);
+      updateRequest.setCustomerProfileId(customerProfileId);
+      updateRequest.setPaymentProfile(customerForUpdate);
+      updateRequest.setValidationMode(ApiContracts.ValidationModeEnum.LIVEMODE);
+
+      const ctrl = new ApiControllers.UpdateCustomerPaymentProfileController(updateRequest.getJSON());
+
+      const response = await new Promise((resolve, reject) => {
+        ctrl.execute(function () {
+
+          const apiResponse = ctrl.getResponse();
+          const response = new ApiContracts.CreateTransactionResponse(apiResponse);
+
+          if (response != null) {
+            if (response.getMessages().getResultCode() == ApiContracts.MessageTypeEnum.OK) {
+              console.log('Successfully updated a customer payment profile with id: ' + customerPaymentProfileId);
+              resolve({message: `Successfully updated a customer payment profile with id ${customerPaymentProfileId}`});
+            } else {
+              console.log('Error Code: ' + response.getMessages().getMessage()[0].getCode());
+              console.log('Error message: ' + response.getMessages().getMessage()[0].getText());
+              reject(response.getMessages().getMessage()[0].getText());
+            }
+          } else {
+            console.log('Null response received');
+            reject({
+              message: 'No response received',
+            });
+          }
+        });
+
+      });
+
+      // TODO: Update payment profile - Last updated date
+
+      return response;
+    } catch (e) {
+      throw e;
+    }
+  }
+
 }
 
 module.exports = CustomerProfileService;
