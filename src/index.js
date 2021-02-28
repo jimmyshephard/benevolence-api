@@ -3,8 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const {secureRoutes, publicRoutes} = require('./routes');
-const {PORT} = process.env || 3000;
-const {HOSTNAME} = '127.0.0.1';
+const PORT = process.env.PORT || 3000;
+const HOSTNAME = process.env.HOSTNAME || '127.0.0.1';
 
 const app = express();
 
