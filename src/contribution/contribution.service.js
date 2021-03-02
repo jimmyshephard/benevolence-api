@@ -119,6 +119,11 @@ class ContributionService {
 
       if (chargeCreditCardResponse && createprofile && !await this.userHasProfile(email)) {
         const createProfileFromTxResponse = await this.createProfileFromTransaction(chargeCreditCardResponse.transId, email);
+        await this.customerProfileService.saveTransaction({
+          AMNT: amount,
+          TRNSCTN_ID: chargeCreditCardResponse.transId,
+          email
+        });
         return {...createProfileFromTxResponse, message: 'The transaction was successful'};
       }
 
@@ -197,7 +202,11 @@ class ContributionService {
         });
       });
 
+      // Save to DB ...
+
       if (response.customerProfileId) {
+
+        // Save contribution to db ...
         await this.db.query(saveCustomerProfileQuery, [email, response.customerProfileId]);
       }
 

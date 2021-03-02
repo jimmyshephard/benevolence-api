@@ -23,7 +23,7 @@ class CustomerProfileService {
 
       if (!dbResultSet.length) {
         console.log(`No customer profiles found for user ${user_email}`);
-        return {};
+        return {paymentProfiles: []};
       }
 
       const {customerProfileId} = dbResultSet[0];
