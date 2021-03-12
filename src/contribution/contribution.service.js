@@ -67,7 +67,7 @@ class ContributionService {
       createRequest.setTransactionRequest(transactionRequestType);
 
       const ctrl = new ApiControllers.CreateTransactionController(createRequest.getJSON());
-      console.log(JSON.stringify(createRequest.getJSON(), null, 2));
+      // console.log(JSON.stringify(createRequest.getJSON(), null, 2));
 
       const chargeCreditCardResponse = await new Promise((resolve, reject) => {
 
