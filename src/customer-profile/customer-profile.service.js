@@ -1,5 +1,5 @@
 require('dotenv').config();
-const {API_LOGIN, TRANSACTION_KEY} = process.env;
+const {API_LOGIN, TRANSACTION_KEY, API_ENVIRONMENT} = process.env;
 const ApiContracts = require('authorizenet').APIContracts;
 const ApiControllers = require('authorizenet').APIControllers;
 const DatabaseService = require('../db/database.service');
@@ -38,6 +38,7 @@ class CustomerProfileService {
       getRequest.setMerchantAuthentication(merchantAuthenticationType);
       const ctrl = new ApiControllers.GetCustomerProfileController(
         getRequest.getJSON());
+      ctrl.setEnvironment(API_ENVIRONMENT);
 
       const result = await new Promise((resolve, reject) => {
         ctrl.execute(function () {
@@ -119,6 +120,7 @@ class CustomerProfileService {
       createRequest.setTransactionRequest(transactionRequestType);
 
       const ctrl = new ApiControllers.CreateTransactionController(createRequest.getJSON());
+      ctrl.setEnvironment(API_ENVIRONMENT);
 
       const response = await new Promise((resolve, reject) => {
         ctrl.execute(function () {
@@ -253,6 +255,7 @@ class CustomerProfileService {
       updateRequest.setValidationMode(ApiContracts.ValidationModeEnum.LIVEMODE);
 
       const ctrl = new ApiControllers.UpdateCustomerPaymentProfileController(updateRequest.getJSON());
+      ctrl.setEnvironment(API_ENVIRONMENT);
 
       const response = await new Promise((resolve, reject) => {
         ctrl.execute(function () {

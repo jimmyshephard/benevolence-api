@@ -1,5 +1,5 @@
 require('dotenv').config();
-const {API_LOGIN, TRANSACTION_KEY} = process.env;
+const {API_LOGIN, TRANSACTION_KEY, API_ENVIRONMENT} = process.env;
 const ApiContracts = require('authorizenet').APIContracts;
 const ApiControllers = require('authorizenet').APIControllers;
 const DatabaseService = require('../db/database.service');
@@ -67,6 +67,7 @@ class ContributionService {
       createRequest.setTransactionRequest(transactionRequestType);
 
       const ctrl = new ApiControllers.CreateTransactionController(createRequest.getJSON());
+      ctrl.setEnvironment(API_ENVIRONMENT);
       // console.log(JSON.stringify(createRequest.getJSON(), null, 2));
 
       const chargeCreditCardResponse = await new Promise((resolve, reject) => {
@@ -178,6 +179,7 @@ class ContributionService {
       createRequest.setMerchantAuthentication(merchantAuthenticationType);
 
       const ctrl = new ApiControllers.CreateCustomerProfileFromTransactionController(createRequest.getJSON());
+      ctrl.setEnvironment(API_ENVIRONMENT);
 
       const response = await new Promise((resolve, reject) => {
         ctrl.execute(async function () {
