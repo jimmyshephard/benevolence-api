@@ -1,3 +1,4 @@
+require('dotenv').config();
 const {API_LOGIN, TRANSACTION_KEY} = process.env;
 const ApiContracts = require('authorizenet').APIContracts;
 const ApiControllers = require('authorizenet').APIControllers;
@@ -66,6 +67,7 @@ class ContributionService {
       createRequest.setTransactionRequest(transactionRequestType);
 
       const ctrl = new ApiControllers.CreateTransactionController(createRequest.getJSON());
+      console.log(JSON.stringify(createRequest.getJSON(), null, 2));
 
       const chargeCreditCardResponse = await new Promise((resolve, reject) => {
 

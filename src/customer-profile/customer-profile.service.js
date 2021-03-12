@@ -1,3 +1,4 @@
+require('dotenv').config();
 const {API_LOGIN, TRANSACTION_KEY} = process.env;
 const ApiContracts = require('authorizenet').APIContracts;
 const ApiControllers = require('authorizenet').APIControllers;
@@ -52,10 +53,6 @@ class CustomerProfileService {
 
               console.log('Customer profile ID : ' +
                 response.getProfile().getCustomerProfileId());
-              console.log(
-                'Customer Email : ' + response.getProfile().getEmail());
-              console.log(
-                'Description : ' + response.getProfile().getDescription());
               resolve(response.getProfile());
 
             } else {

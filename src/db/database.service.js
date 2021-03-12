@@ -1,5 +1,5 @@
 const mySqlConnector = require('./mysql.connector');
-const databaseConnection = new mySqlConnector().getInstance().getConnection();
+const databaseConnection = new mySqlConnector().getConnection();
 
 /**
  * Handles MySql query related logic
@@ -10,7 +10,11 @@ class DatabaseService {
   databaseConnection = null;
 
   constructor() {
-    this.databaseConnection = databaseConnection;
+    if (!DatabaseService.instance) {
+      this.databaseConnection = databaseConnection;
+      DatabaseService.instance = this;
+    }
+    return DatabaseService.instance;
   }
 
   /**
