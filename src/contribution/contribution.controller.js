@@ -14,7 +14,7 @@ class ContributionController {
    */
   chargeCreditCard = async (req, res) => {
     try {
-      console.log(`Processing contribution request for ${req.body.user_email}`);
+      console.log(`Processing contribution request for ${req.user_email}`);
       const result = await this.contributionService.chargeCreditCard(req);
 
       return res.json(result);
