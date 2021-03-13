@@ -10,7 +10,7 @@ router.post(
   body('cardnumber').isLength({min: 13}).trim(),
   body('firstname').not().isEmpty().trim(),
   body('lastname').not().isEmpty().trim(),
-  body('description').isLength({min: 5}),
+  body('description').not().isEmpty().isLength({min: 5}),
   body('zip').isNumeric().isLength({min: 5}),
   body('cardcode').isNumeric().isLength({min: 3}),
   body('expirationdate').not().isEmpty().trim(),

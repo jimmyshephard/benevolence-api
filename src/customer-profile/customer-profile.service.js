@@ -6,6 +6,9 @@ const DatabaseService = require('../db/database.service');
 const getCustomerProfileQuery = require('./getCustomeProfileQuery');
 const saveTransactionQuery = require('./saveTransactionQuery');
 const customerProfileQuery = require('./customerProfileQuery');
+const uuid = require('../util/uuid');
+
+
 
 class CustomerProfileService {
 
@@ -91,7 +94,7 @@ class CustomerProfileService {
    */
   async chargeCustomerProfile(params) {
     try {
-      const {amount, paymentprofile, email, customerProfileId} = params;
+      const {amount, paymentprofile, email, customerProfileId, description} = params;
       const {customerPaymentProfileId} = paymentprofile;
 
       const merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
@@ -107,13 +110,19 @@ class CustomerProfileService {
 
       const orderDetails = new ApiContracts.OrderType();
       orderDetails.setInvoiceNumber(`INV-${Math.floor(Math.random() * 100000)}`);
-      orderDetails.setDescription('Benevolence');
+      orderDetails.setDescription(description.description);
+
+      const customer = new ApiContracts.CustomerDataType();
+      customer.setType('individual');
+      customer.setEmail(email);
+      customer.setId(uuid.random());
 
       const transactionRequestType = new ApiContracts.TransactionRequestType();
       transactionRequestType.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
       transactionRequestType.setProfile(profileToCharge);
       transactionRequestType.setAmount(amount);
       transactionRequestType.setOrder(orderDetails);
+      transactionRequestType.setCustomer(customer);
 
       const createRequest = new ApiContracts.CreateTransactionRequest();
       createRequest.setMerchantAuthentication(merchantAuthenticationType);
@@ -131,10 +140,7 @@ class CustomerProfileService {
           if (response != null) {
             if (response.getMessages().getResultCode() == ApiContracts.MessageTypeEnum.OK) {
               if (response.getTransactionResponse().getMessages() != null) {
-                console.log('Successfully created transaction with Transaction ID: ' + response.getTransactionResponse().getTransId());
-                console.log('Response Code: ' + response.getTransactionResponse().getResponseCode());
-                console.log('Message Code: ' + response.getTransactionResponse().getMessages().getMessage()[0].getCode());
-                console.log('Description: ' + response.getTransactionResponse().getMessages().getMessage()[0].getDescription());
+                console.log('Successfully created transaction with ID: ' + response.getTransactionResponse().getTransId());
                 resolve(response.getTransactionResponse());
               } else {
                 console.log('Failed Transaction.');
@@ -175,6 +181,7 @@ class CustomerProfileService {
       await this.saveTransaction({
         AMNT: amount,
         TRNSCTN_ID: response.transId,
+        TX_DESC_ID: description.id,
         email
       });
 
@@ -191,16 +198,16 @@ class CustomerProfileService {
    */
   async saveTransaction(params) {
     try {
-      const {email, AMNT, TRNSCTN_ID} = params;
+      const {email, AMNT, TRNSCTN_ID, TX_DESC_ID} = params;
       const custProfileRs = await this.db.query(customerProfileQuery, [email]);
+      console.log(`Saving transaction ${TRNSCTN_ID} for ${email}`);
 
       if (custProfileRs && custProfileRs[0] && custProfileRs[0].customerProfileId) {
-        console.log(`Saving tx ${TRNSCTN_ID} for ${email}`);
         const CSTMR_PRFL_ID = custProfileRs[0].customerProfileId;
 
-        await this.db.query(saveTransactionQuery, {AMNT, CSTMR_PRFL_ID, TRNSCTN_ID});
+        await this.db.query(saveTransactionQuery, {AMNT, CSTMR_PRFL_ID, TRNSCTN_ID, TX_DESC_ID});
       } else {
-        console.log(`No profile found for user ${email}`);
+        console.log(`Transaction not saved. No profile was found for ${email}`);
       }
 
     } catch (e) {

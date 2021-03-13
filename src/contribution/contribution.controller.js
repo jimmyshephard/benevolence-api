@@ -14,7 +14,6 @@ class ContributionController {
    */
   chargeCreditCard = async (req, res) => {
     try {
-      console.log(`Processing contribution request for ${req.user_email}`);
       const result = await this.contributionService.chargeCreditCard(req);
 
       return res.json(result);
@@ -46,6 +45,28 @@ class ContributionController {
       });
     }
   }
+
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns {Promise<*>}
+   */
+  getTxDescriptions = async (req, res) => {
+    try {
+
+      const result = await this.contributionService.getTxDescriptions();
+
+      return res.json(result);
+
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({
+        message: 'Error getting tx descriptions',
+      });
+    }
+  }
+
 
   /**
    *

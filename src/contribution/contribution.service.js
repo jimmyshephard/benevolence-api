@@ -7,6 +7,8 @@ const {CustomerProfileService} = require('../customer-profile');
 const {getCustomerProfileQuery,} = require('../customer-profile');
 const saveCustomerProfileQuery = require('./saveCustomerProfileQuery');
 const getContributionsQuery = require('./getContributionsQuery');
+const getTxDescriptionsQuery = require('./getTxDescriptionsQuery');
+const uuid = require('../util/uuid');
 
 
 class ContributionService {
@@ -42,9 +44,14 @@ class ContributionService {
       const paymentType = new ApiContracts.PaymentType();
       paymentType.setCreditCard(creditCard);
 
+      const customer = new ApiContracts.CustomerDataType();
+      customer.setEmail(email);
+      customer.setId(uuid.random());
+      customer.setType('individual');
+
       const orderDetails = new ApiContracts.OrderType();
       orderDetails.setInvoiceNumber(`INV-${Math.floor(Math.random() * 100000)}`);
-      orderDetails.setDescription(description);
+      orderDetails.setDescription(description.description);
 
       const billTo = new ApiContracts.CustomerAddressType();
       billTo.setFirstName(firstname);
@@ -58,9 +65,8 @@ class ContributionService {
       transactionRequestType.setAmount(amount);
       transactionRequestType.setOrder(orderDetails);
       transactionRequestType.setBillTo(billTo);
+      transactionRequestType.setCustomer(customer);
 
-      const customerData = new ApiContracts.CustomerDataType();
-      customerData.setEmail(email);
 
       const createRequest = new ApiContracts.CreateTransactionRequest();
       createRequest.setMerchantAuthentication(merchantAuthenticationType);
@@ -81,11 +87,7 @@ class ContributionService {
           if (response != null) {
             if (response.getMessages().getResultCode() == ApiContracts.MessageTypeEnum.OK) {
               if (response.getTransactionResponse().getMessages() != null) {
-                console.log('Successfully created transaction with Transaction ID: ' + response.getTransactionResponse().getTransId());
-                console.log('Response Code: ' + response.getTransactionResponse().getResponseCode());
-                console.log('Message Code: ' + response.getTransactionResponse().getMessages().getMessage()[0].getCode());
-                console.log('Description: ' + response.getTransactionResponse().getMessages().getMessage()[0].getDescription());
-
+                console.log('Successfully created transaction with ID: ' + response.getTransactionResponse().getTransId());
                 resolve(response.getTransactionResponse());
               } else {
                 console.log('Failed Transaction.');
@@ -125,7 +127,8 @@ class ContributionService {
         await this.customerProfileService.saveTransaction({
           AMNT: amount,
           TRNSCTN_ID: chargeCreditCardResponse.transId,
-          email
+          email,
+          TX_DESC_ID: description.id
         });
         return {...createProfileFromTxResponse, message: 'The transaction was successful'};
       }
@@ -134,7 +137,8 @@ class ContributionService {
       await this.customerProfileService.saveTransaction({
         AMNT: amount,
         TRNSCTN_ID: chargeCreditCardResponse.transId,
-        email
+        email,
+        TX_DESC_ID: description.id
       });
 
       return chargeCreditCardResponse;
@@ -158,6 +162,7 @@ class ContributionService {
       throw  e;
     }
   }
+
 
   /**
    *
@@ -221,6 +226,7 @@ class ContributionService {
     }
   }
 
+
   /**
    *
    * @returns {Promise<[]>}
@@ -238,6 +244,21 @@ class ContributionService {
       throw e;
     }
   }
+
+
+  /**
+   *
+   * @returns {Promise<[]>}
+   */
+  getTxDescriptions = async () => {
+    try {
+      const resultSet = await this.db.query(getTxDescriptionsQuery, []);
+      return resultSet;
+    } catch (e) {
+      throw e;
+    }
+  }
+
 
   /**
    *
