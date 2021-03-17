@@ -16,6 +16,7 @@ router.post(
   body('paymentprofile.customerPaymentProfileId').not().isEmpty(),
   body('customerProfileId').not().isEmpty(),
   body('amount').not().isEmpty().isNumeric(),
+  body('occurrence').not().isEmpty().isLength({max: 100}),
   body('description').not().isEmpty().isLength({min: 5}),
   validateRequest,
   customerProfileController.chargeCustomerProfile,

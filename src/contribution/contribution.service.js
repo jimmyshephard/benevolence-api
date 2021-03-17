@@ -27,7 +27,7 @@ class ContributionService {
     try {
       const {
         cardnumber, firstname, lastname, description, zip, cardcode,
-        expirationdate, amount, createprofile
+        expirationdate, amount, createprofile, occurrence
       } = req.body;
 
       const email = req.body.email || req.user_email;
@@ -51,7 +51,7 @@ class ContributionService {
 
       const orderDetails = new ApiContracts.OrderType();
       orderDetails.setInvoiceNumber(`INV-${Math.floor(Math.random() * 100000)}`);
-      orderDetails.setDescription(description.description);
+      orderDetails.setDescription(occurrence);
 
       const billTo = new ApiContracts.CustomerAddressType();
       billTo.setFirstName(firstname);
@@ -124,22 +124,35 @@ class ContributionService {
 
       if (chargeCreditCardResponse && createprofile && !await this.userHasProfile(email)) {
         const createProfileFromTxResponse = await this.createProfileFromTransaction(chargeCreditCardResponse.transId, email);
-        await this.customerProfileService.saveTransaction({
+
+        const dbParams = {
           AMNT: amount,
           TRNSCTN_ID: chargeCreditCardResponse.transId,
           email,
           TX_DESC_ID: description.id
-        });
+        };
+
+        if (occurrence && occurrence.length > 0) {
+          dbParams['OCCURRENCE'] = occurrence;
+        }
+
+        await this.customerProfileService.saveTransaction(dbParams);
         return {...createProfileFromTxResponse, message: 'The transaction was successful'};
       }
 
       // Save to db
-      await this.customerProfileService.saveTransaction({
+      const dbParams = {
         AMNT: amount,
         TRNSCTN_ID: chargeCreditCardResponse.transId,
         email,
         TX_DESC_ID: description.id
-      });
+      };
+
+      if (occurrence && occurrence.length > 0) {
+        dbParams['OCCURRENCE'] = occurrence;
+      }
+
+      await this.customerProfileService.saveTransaction(dbParams);
 
       return chargeCreditCardResponse;
 

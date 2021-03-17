@@ -94,7 +94,7 @@ class CustomerProfileService {
    */
   async chargeCustomerProfile(params) {
     try {
-      const {amount, paymentprofile, email, customerProfileId, description} = params;
+      const {amount, paymentprofile, email, customerProfileId, description, occurrence} = params;
       const {customerPaymentProfileId} = paymentprofile;
 
       const merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
@@ -110,7 +110,7 @@ class CustomerProfileService {
 
       const orderDetails = new ApiContracts.OrderType();
       orderDetails.setInvoiceNumber(`INV-${Math.floor(Math.random() * 100000)}`);
-      orderDetails.setDescription(description.description);
+      orderDetails.setDescription(occurrence);
 
       const customer = new ApiContracts.CustomerDataType();
       customer.setType('individual');
@@ -177,13 +177,18 @@ class CustomerProfileService {
 
       });
 
-
-      await this.saveTransaction({
+      const dbParams = {
         AMNT: amount,
         TRNSCTN_ID: response.transId,
         TX_DESC_ID: description.id,
         email
-      });
+      };
+
+      if (occurrence && occurrence.length > 0) {
+        dbParams['OCCURRENCE'] = occurrence;
+      }
+
+      await this.saveTransaction(dbParams);
 
       return response;
     } catch (e) {
@@ -198,14 +203,14 @@ class CustomerProfileService {
    */
   async saveTransaction(params) {
     try {
-      const {email, AMNT, TRNSCTN_ID, TX_DESC_ID} = params;
+      const {email, AMNT, TRNSCTN_ID, TX_DESC_ID, OCCURRENCE} = params;
       const custProfileRs = await this.db.query(customerProfileQuery, [email]);
       console.log(`Saving transaction ${TRNSCTN_ID} for ${email}`);
 
       if (custProfileRs && custProfileRs[0] && custProfileRs[0].customerProfileId) {
         const CSTMR_PRFL_ID = custProfileRs[0].customerProfileId;
 
-        await this.db.query(saveTransactionQuery, {AMNT, CSTMR_PRFL_ID, TRNSCTN_ID, TX_DESC_ID});
+        await this.db.query(saveTransactionQuery, {AMNT, CSTMR_PRFL_ID, TRNSCTN_ID, TX_DESC_ID, OCCURRENCE});
       } else {
         console.log(`Transaction not saved. No profile was found for ${email}`);
       }

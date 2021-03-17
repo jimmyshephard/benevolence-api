@@ -15,6 +15,7 @@ router.post(
   body('cardcode').isNumeric().isLength({min: 3}),
   body('expirationdate').not().isEmpty().trim(),
   body('amount').not().isEmpty().isNumeric(),
+  body('occurrence').not().isEmpty().isLength({max: 100}),
   validateRequest,
   contributionController.chargeCreditCard,
 );
