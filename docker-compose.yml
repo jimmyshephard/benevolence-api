@@ -1,0 +1,18 @@
+services:
+  db:
+    image: mysql/mysql-server:8.0
+    container_name: mysql_benevolence_db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=tree
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_DATABASE=benevolence
+      - MYSQL_USER=benevolence_admin
+      - MYSQL_PASSWORD=benevolence_P@ssw0rd
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_benevolence_data:/var/lib/mysql
+
+volumes:
+  mysql_benevolence_data:

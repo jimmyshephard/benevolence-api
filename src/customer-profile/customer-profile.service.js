@@ -203,14 +203,14 @@ class CustomerProfileService {
    */
   async saveTransaction(params) {
     try {
-      const {email, AMNT, TRNSCTN_ID, TX_DESC_ID, OCCURRENCE} = params;
+      const {email, AMNT, TRNSCTN_ID, TX_DESC_ID, OCCURENCE} = params;
       const custProfileRs = await this.db.query(customerProfileQuery, [email]);
       console.log(`Saving transaction ${TRNSCTN_ID} for ${email}`);
 
       if (custProfileRs && custProfileRs[0] && custProfileRs[0].customerProfileId) {
         const CSTMR_PRFL_ID = custProfileRs[0].customerProfileId;
 
-        await this.db.query(saveTransactionQuery, {AMNT, CSTMR_PRFL_ID, TRNSCTN_ID, TX_DESC_ID, OCCURRENCE});
+        await this.db.query(saveTransactionQuery, {AMNT, CSTMR_PRFL_ID, TRNSCTN_ID, TX_DESC_ID, OCCURENCE});
       } else {
         console.log(`Transaction not saved. No profile was found for ${email}`);
       }

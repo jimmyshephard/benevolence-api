@@ -1,8 +1,9 @@
+// TODO update OCCRENCE to OCCURRENCE in the database and in the code on move to ORM
 module.exports = `SELECT 
 CONT.AMNT amount, 
 CONT.TRNSCTN_ID transactionId, 
 CONT.CRTD_DT createdDate,
-CONT.OCCURRENCE occurrence,       
+CONT.OCCURENCE occurrence,        
 PROF.EMAIL email, 
 PROF.ATHNT_CSTMR_PRFL_ID customerProfileId,
 META.TX_DESCRIPTION txDescription       

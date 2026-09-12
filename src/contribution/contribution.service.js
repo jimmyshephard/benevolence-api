@@ -10,7 +10,6 @@ const getContributionsQuery = require('./getContributionsQuery');
 const getTxDescriptionsQuery = require('./getTxDescriptionsQuery');
 const uuid = require('../util/uuid');
 
-
 class ContributionService {
 
   constructor(db, customerProfileService) {
@@ -133,7 +132,7 @@ class ContributionService {
         };
 
         if (occurrence && occurrence.length > 0) {
-          dbParams['OCCURRENCE'] = occurrence;
+          dbParams['OCCURENCE'] = occurrence;
         }
 
         await this.customerProfileService.saveTransaction(dbParams);
@@ -149,7 +148,7 @@ class ContributionService {
       };
 
       if (occurrence && occurrence.length > 0) {
-        dbParams['OCCURRENCE'] = occurrence;
+        dbParams['OCCURENCE'] = occurrence;
       }
 
       await this.customerProfileService.saveTransaction(dbParams);
