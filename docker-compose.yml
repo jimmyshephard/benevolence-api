@@ -14,5 +14,32 @@ services:
     volumes:
       - mysql_benevolence_data:/var/lib/mysql
 
+  api:
+    build: .
+    container_name: benevolence_api
+    restart: unless-stopped
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=benevolence
+      - DB_USER=benevolence_admin
+      - DB_PASSWORD=benevolence_P@ssw0rd
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  ui:
+    build:
+      context: ../benevolence-ui
+      target: production
+      dockerfile: Dockerfile
+    container_name: benevolence_ui
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    depends_on:
+      - api
+
 volumes:
   mysql_benevolence_data:
