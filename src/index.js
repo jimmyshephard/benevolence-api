@@ -1,18 +1,25 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const bodyParser = require('body-parser');
-const {secureRoutes, publicRoutes} = require('./routes');
-const PORT = process.env.PORT || 3000;
-const HOSTNAME = process.env.HOSTNAME || '127.0.0.1';
 
+const routes = require('./routes');
+const secureRoutes = routes.secureRoutes;
+const publicRoutes = routes.publicRoutes;
+
+const PORT = process.env.PORT || 3000;
 const app = express();
 
-app.use(cors());
 app.use(bodyParser.json());
+
+// Bind the routes directly without complex wrapper syntax
 app.use('/secure', secureRoutes);
 app.use('/public', publicRoutes);
 
-app.server = app.listen(PORT, HOSTNAME, () => {
-  console.log(`Benevolence payments API is running on port ${PORT}`);
+// Simple health route to verify stability
+app.get('/health', function(req, res) {
+  res.status(200).json({ status: "online" });
+});
+
+app.server = app.listen(PORT, function() {
+  console.log('Benevolence payments API is running successfully.');
 });
