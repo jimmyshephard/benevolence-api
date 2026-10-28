@@ -1,0 +1,18 @@
+# Dependencies are installed inside the image
+node_modules
+coverage
+
+# Secrets - supplied at runtime via docker-compose env_file, never baked into the image
+.env
+.env.*
+!.env.example
+
+# Archives, VCS, editor and OS files
+*.zip
+.git
+.gitignore
+.idea
+.vscode
+.DS_Store
+*.log
+

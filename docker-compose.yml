@@ -18,11 +18,14 @@ services:
     build: .
     container_name: benevolence_api
     restart: unless-stopped
+    # Authorize.Net, Auth0 and CORS settings come from .env; the DB values below override it
+    env_file:
+      - .env
     environment:
       - DB_HOST=db
       - DB_PORT=3306
-      - DB_NAME=benevolence
-      - DB_USER=benevolence_admin
+      - DB_DATABASE=benevolence
+      - DB_USERNAME=benevolence_admin
       - DB_PASSWORD=benevolence_P@ssw0rd
     ports:
       - "3000:3000"
